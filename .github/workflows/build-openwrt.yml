@@ -61,6 +61,12 @@ jobs:
         git clone $REPO_URL -b $REPO_BRANCH openwrt
         ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
 
+    - name: Added rtl88x2bu driver from immortalwrt
+      working-directory: /workdir
+      run: |
+        git clone https://github.com/immortalwrt/immortalwrt.git immortalwrt
+        ln -sf /workdir/immortalwrt/package/kernel/rtl88x2bu $GITHUB_WORKSPACE/openwrt/package/kernel/rtl88x2bu
+
     - name: Load custom feeds
       run: |
         [ -e $FEEDS_CONF ] && mv $FEEDS_CONF openwrt/feeds.conf.default
@@ -70,6 +76,14 @@ jobs:
 
     - name: Update feeds
       run: cd openwrt && ./scripts/feeds update -a
+
+    - name: Replace and set jerrykuku/luci-theme-argon as default theme
+      run: |
+        cd openwrt
+        rm -rf feeds/luci/themes/luci-theme-argon
+        git clone --branch 18.06 https://github.com/jerrykuku/luci-theme-argon.git feeds/luci/themes/luci-theme-argon
+        sed -i 's/Bootstrap/Argon/g' feeds/luci/collections/luci/Makefile
+        sed -i 's/luci-theme-bootstrap/luci-theme-argon/g' feeds/luci/collections/luci/Makefile
 
     - name: Install feeds
       run: cd openwrt && ./scripts/feeds install -a
